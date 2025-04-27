@@ -31,7 +31,7 @@ func main() {
 	}
 
 	// Declare and bind the queue
-	ch, q, err := pubsub.DeclareAndBind(
+	_, q, err := pubsub.DeclareAndBind(
 		conn,
 		routing.ExchangePerilDirect,
 		routing.PauseKey+"."+username,
@@ -41,10 +41,7 @@ func main() {
 		fmt.Printf("Failed to declare and bind queue: %s\n", err)
 		return
 	}
-
-	// Print channel and queue information
-	fmt.Printf("Channel: %v\n", ch)
-	fmt.Printf("Queue: %v\n", q)
+	fmt.Printf("Successfully declared and bound queue: %s\n", q.Name)
 
 	// Wait for Ctrl+C signal
 	signalChan := make(chan os.Signal, 1)
