@@ -6,8 +6,6 @@ import (
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"os"
-	"os/signal"
 )
 
 func main() {
@@ -31,7 +29,7 @@ func main() {
 	}
 
 	// Declare and bind the queue
-	_, q, err := pubsub.DeclareAndBind(
+	_, _, err = pubsub.DeclareAndBind(
 		conn,
 		routing.ExchangePerilDirect,
 		routing.PauseKey+"."+username,
@@ -41,12 +39,44 @@ func main() {
 		fmt.Printf("Failed to declare and bind queue: %s\n", err)
 		return
 	}
-	fmt.Printf("Successfully declared and bound queue: %s\n", q.Name)
 
-	// Wait for Ctrl+C signal
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-	<-signalChan
+	// Create new game state
+	gameState := gamelogic.NewGameState(username)
+
+	// Start the game client loop
+	for {
+		words := gamelogic.GetInput()
+		if len(words) == 0 {
+			continue
+		}
+
+		switch words[0] {
+		case "spawn":
+			err := gameState.CommandSpawn(words)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+		case "move":
+			mv, err := gameState.CommandMove(words)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			fmt.Printf("Move to %s successful!\n", mv.ToLocation)
+		case "status":
+			gameState.CommandStatus()
+		case "help":
+			gamelogic.PrintClientHelp()
+		case "spam":
+			fmt.Println("Spamming not allowed yet!")
+		case "quit":
+			gamelogic.PrintQuit()
+			return
+		default:
+			fmt.Println("Unknown command. Type 'help' for a list of commands.")
+		}
+	}
 
 	fmt.Println("Shutting down Peril client...")
 }
