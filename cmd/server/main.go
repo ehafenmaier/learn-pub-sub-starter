@@ -32,7 +32,7 @@ func main() {
 	// Print server help
 	gamelogic.PrintServerHelp()
 
-	// Start the game loop
+	// Start the game server loop
 	for {
 		words := gamelogic.GetInput()
 		if len(words) == 0 {
