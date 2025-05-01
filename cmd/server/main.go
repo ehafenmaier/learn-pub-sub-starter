@@ -29,6 +29,18 @@ func main() {
 	}
 	defer ch.Close()
 
+	// Declare and bind a durable queue
+	_, _, err = pubsub.DeclareAndBind(
+		conn,
+		routing.ExchangePerilTopic,
+		routing.GameLogSlug,
+		routing.GameLogSlug+".*",
+		pubsub.DurableQueue)
+	if err != nil {
+		fmt.Printf("Failed to declare and bind queue: %s\n", err)
+		return
+	}
+
 	// Print server help
 	gamelogic.PrintServerHelp()
 
