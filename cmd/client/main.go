@@ -43,6 +43,15 @@ func main() {
 	// Create new game state
 	gameState := gamelogic.NewGameState(username)
 
+	// Subscribe to the pause topic
+	err = pubsub.SubscribeJSON(
+		conn,
+		routing.ExchangePerilDirect,
+		routing.PauseKey+"."+username,
+		routing.PauseKey,
+		pubsub.TransientQueue,
+		handlerPause(gameState))
+
 	// Start the game client loop
 	for {
 		words := gamelogic.GetInput()
