@@ -68,12 +68,11 @@ func main() {
 		case "spam":
 			fmt.Println("Spamming not allowed yet!")
 		case "quit":
+			fmt.Println("Shutting down Peril client...")
 			gamelogic.PrintQuit()
 			return
 		default:
 			fmt.Println("Unknown command. Type 'help' for a list of commands.")
 		}
 	}
-
-	fmt.Println("Shutting down Peril client...")
 }
