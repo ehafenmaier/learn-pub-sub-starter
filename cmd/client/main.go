@@ -21,6 +21,14 @@ func main() {
 	defer conn.Close()
 	fmt.Println("Successfully connected to RabbitMQ")
 
+	// Create a channel
+	ch, err := conn.Channel()
+	if err != nil {
+		fmt.Printf("Failed to open a channel: %s\n", err)
+		return
+	}
+	defer ch.Close()
+
 	// Prompt user for username
 	username, err := gamelogic.ClientWelcome()
 	if err != nil {
@@ -39,6 +47,15 @@ func main() {
 		routing.PauseKey,
 		pubsub.TransientQueue,
 		handlerPause(gameState))
+
+	// Subscribe to the move queue
+	err = pubsub.SubscribeJSON(
+		conn,
+		routing.ExchangePerilTopic,
+		routing.ArmyMovesPrefix+"."+username,
+		routing.ArmyMovesPrefix+".*",
+		pubsub.TransientQueue,
+		handlerMove(gameState))
 
 	// Start the game client REPL loop
 	for {
@@ -60,6 +77,11 @@ func main() {
 				fmt.Println(err)
 				continue
 			}
+			err = pubsub.PublishJSON(ch, routing.ExchangePerilTopic, routing.ArmyMovesPrefix+"."+username, mv)
+			if err != nil {
+				fmt.Printf("Failed to publish move message: %s\n", err)
+				continue
+			}
 			fmt.Printf("Move to %s successful!\n", mv.ToLocation)
 		case "status":
 			gameState.CommandStatus()
@@ -68,7 +90,6 @@ func main() {
 		case "spam":
 			fmt.Println("Spamming not allowed yet!")
 		case "quit":
-			fmt.Println("Shutting down Peril client...")
 			gamelogic.PrintQuit()
 			return
 		default:
