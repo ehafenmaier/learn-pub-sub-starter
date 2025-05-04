@@ -28,22 +28,10 @@ func main() {
 		return
 	}
 
-	// Declare and bind the queue
-	_, _, err = pubsub.DeclareAndBind(
-		conn,
-		routing.ExchangePerilDirect,
-		routing.PauseKey+"."+username,
-		routing.PauseKey,
-		pubsub.TransientQueue)
-	if err != nil {
-		fmt.Printf("Failed to declare and bind queue: %s\n", err)
-		return
-	}
-
 	// Create new game state
 	gameState := gamelogic.NewGameState(username)
 
-	// Subscribe to the pause topic
+	// Subscribe to the pause queue
 	err = pubsub.SubscribeJSON(
 		conn,
 		routing.ExchangePerilDirect,
@@ -52,7 +40,7 @@ func main() {
 		pubsub.TransientQueue,
 		handlerPause(gameState))
 
-	// Start the game client loop
+	// Start the game client REPL loop
 	for {
 		words := gamelogic.GetInput()
 		if len(words) == 0 {
