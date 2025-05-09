@@ -36,14 +36,17 @@ func DeclareAndBind(
 	default:
 	}
 
-	// Declare the queue
+	// Declare the queue with a dead-letter exchange
+	args := amqp.Table{}
+	args["x-dead-letter-exchange"] = "peril_dlx"
+
 	q, err := ch.QueueDeclare(
 		queueName,
 		durable,
 		autoDelete,
 		exclusive,
 		false,
-		nil,
+		args,
 	)
 	if err != nil {
 		return nil, amqp.Queue{}, err
@@ -55,7 +58,7 @@ func DeclareAndBind(
 		key,
 		exchange,
 		false,
-		nil,
+		args,
 	)
 	if err != nil {
 		return nil, amqp.Queue{}, err
