@@ -5,29 +5,20 @@ import (
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/routing"
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 func main() {
 	fmt.Println("Starting Peril server...")
 
 	// Connect to RabbitMQ
-	connStr := "amqp://guest:guest@localhost:5672/"
-	conn, err := amqp.Dial(connStr)
+	conn, ch, err := pubsub.ConnectRabbitMQ()
 	if err != nil {
 		fmt.Printf("Failed to connect to RabbitMQ: %s\n", err)
 		return
 	}
 	defer conn.Close()
-	fmt.Println("Successfully connected to RabbitMQ")
-
-	// Create a channel
-	ch, err := conn.Channel()
-	if err != nil {
-		fmt.Printf("Failed to open a channel: %s\n", err)
-		return
-	}
 	defer ch.Close()
+	fmt.Println("Successfully connected to RabbitMQ")
 
 	// Declare and bind a durable queue
 	_, _, err = pubsub.DeclareAndBind(
