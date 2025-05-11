@@ -38,6 +38,10 @@ func main() {
 		routing.PauseKey,
 		pubsub.TransientQueue,
 		handlerPause(gameState))
+	if err != nil {
+		fmt.Printf("Failed to subscribe to pause queue: %s\n", err)
+		return
+	}
 
 	// Subscribe to the move queue
 	err = pubsub.SubscribeJSON(
@@ -47,6 +51,23 @@ func main() {
 		routing.ArmyMovesPrefix+".*",
 		pubsub.TransientQueue,
 		handlerMove(gameState))
+	if err != nil {
+		fmt.Printf("Failed to subscribe to move queue: %s\n", err)
+		return
+	}
+
+	// Subscribe to the war queue
+	err = pubsub.SubscribeJSON(
+		conn,
+		routing.ExchangePerilTopic,
+		routing.WarRecognitionsPrefix,
+		routing.WarRecognitionsPrefix+".*",
+		pubsub.DurableQueue,
+		handlerWar(gameState))
+	if err != nil {
+		fmt.Printf("Failed to subscribe to war queue: %s\n", err)
+		return
+	}
 
 	// Start the game client REPL loop
 	for {
