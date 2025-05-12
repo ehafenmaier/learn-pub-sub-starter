@@ -28,8 +28,12 @@ func handlerMove(gs *gamelogic.GameState) func(gamelogic.ArmyMove) pubsub.AckTyp
 			ackType = pubsub.Ack
 		case gamelogic.MoveOutcomeMakeWar:
 			key := routing.WarRecognitionsPrefix + "." + gs.GetUsername()
-			pubsub.PublishJSON(ch, routing.ExchangePerilTopic, key, move)
-			ackType = pubsub.NackRequeue
+			err = pubsub.PublishJSON(ch, routing.ExchangePerilTopic, key, move)
+			if err != nil {
+				ackType = pubsub.NackRequeue
+			} else {
+				ackType = pubsub.Ack
+			}
 		case gamelogic.MoveOutcomeSamePlayer:
 			ackType = pubsub.NackDiscard
 		default:
