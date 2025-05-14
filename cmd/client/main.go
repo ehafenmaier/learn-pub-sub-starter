@@ -50,7 +50,7 @@ func main() {
 		routing.ArmyMovesPrefix+"."+username,
 		routing.ArmyMovesPrefix+".*",
 		pubsub.TransientQueue,
-		handlerMove(gameState))
+		handlerMove(gameState, ch))
 	if err != nil {
 		fmt.Printf("Failed to subscribe to move queue: %s\n", err)
 		return
@@ -63,7 +63,7 @@ func main() {
 		routing.WarRecognitionsPrefix,
 		routing.WarRecognitionsPrefix+".*",
 		pubsub.DurableQueue,
-		handlerWar(gameState))
+		handlerWar(gameState, ch))
 	if err != nil {
 		fmt.Printf("Failed to subscribe to war queue: %s\n", err)
 		return
