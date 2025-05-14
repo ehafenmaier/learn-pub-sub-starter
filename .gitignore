@@ -6,3 +6,6 @@
 *.ipr
 *.iws
 *.hprof
+
+# Log files
+*.log
