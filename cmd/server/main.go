@@ -20,15 +20,16 @@ func main() {
 	defer ch.Close()
 	fmt.Println("Successfully connected to RabbitMQ")
 
-	// Declare and bind a durable queue
-	_, _, err = pubsub.DeclareAndBind(
+	// Subscribe to the game logs queue
+	err = pubsub.SubscribeGob(
 		conn,
 		routing.ExchangePerilTopic,
 		routing.GameLogSlug,
 		routing.GameLogSlug+".*",
-		pubsub.DurableQueue)
+		pubsub.DurableQueue,
+		handlerGameLog())
 	if err != nil {
-		fmt.Printf("Failed to declare and bind queue: %s\n", err)
+		fmt.Printf("Failed to subscribe to game logs queue: %s\n", err)
 		return
 	}
 
