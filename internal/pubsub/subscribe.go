@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
+	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -34,6 +35,12 @@ func SubscribeJSON[T any](
 		return err
 	}
 
+	// Set prefetch count to 10
+	err = ch.Qos(10, 0, false)
+	if err != nil {
+		return err
+	}
+
 	// Get delivery channel from the queue
 	messages, err := ch.Consume(q.Name, "", false, false, false, false, nil)
 	if err != nil {
@@ -46,7 +53,7 @@ func SubscribeJSON[T any](
 			var val T
 			err := json.Unmarshal(msg.Body, &val)
 			if err != nil {
-				msg.Nack(false, false)
+				fmt.Printf("Failed to unmarshal json: %s\n", err)
 				continue
 			}
 
@@ -84,6 +91,12 @@ func SubscribeGob[T any](
 		return err
 	}
 
+	// Set prefetch count to 10
+	err = ch.Qos(10, 0, false)
+	if err != nil {
+		return err
+	}
+
 	// Get delivery channel from the queue
 	messages, err := ch.Consume(q.Name, "", false, false, false, false, nil)
 	if err != nil {
@@ -94,11 +107,11 @@ func SubscribeGob[T any](
 	go func() {
 		for msg := range messages {
 			var val T
-			var buf bytes.Buffer
-			dec := gob.NewDecoder(&buf)
+			buf := bytes.NewBuffer(msg.Body)
+			dec := gob.NewDecoder(buf)
 			err := dec.Decode(&val)
 			if err != nil {
-				msg.Nack(false, false)
+				fmt.Printf("Failed to decode gob: %s\n", err)
 				continue
 			}
 
